@@ -7,18 +7,12 @@
 void test_fp()
 {
     /* code */
-    const Item a{1};
-    const Item b{2};
-    const Item c{3};
-    const Item d{4};
-    const Item e{5};
-    const Item f{6};
-
-    // const Item a{ "A" };
-    // const Item b{ "B" };
-    // const Item c{ "C" };
-    // const Item d{ "D" };
-    // const Item e{ "E" };
+    const Item a{10, "a"};
+    const Item b{2, "b"};
+    const Item c{3, "c"};
+    const Item d{4, "d"};
+    const Item e{5, "e"};
+    const Item f{6, "f"};
 
     const std::vector<Transaction> transactions{
         { a, b },
@@ -38,6 +32,8 @@ void test_fp()
     const FPTree fptree{ transactions, minimum_support_treshold };
 
     const std::set<Pattern> patterns = fptree_growth( fptree );
+
+    print_pattern(patterns);
 }
 
 int main(int argc, char const *argv[])
