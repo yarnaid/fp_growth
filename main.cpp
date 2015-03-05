@@ -27,6 +27,7 @@ int main(int argc, char const *argv[]) {
     std::set<Pattern> patterns = fptree_growth( fptree );
     // print_pattern(patterns);
 
+    // RESULT 1
     std::set<Item> classified = append_svm_class(patterns);
     train(classified);
 
