@@ -1,0 +1,2 @@
+/usr/bin/ar cq libdlib.a  CMakeFiles/dlib.dir/Users/yarnaid/fl/deals/fp_growth_test/dclib-code/dlib/all/source.cpp.o
+/usr/bin/ranlib libdlib.a

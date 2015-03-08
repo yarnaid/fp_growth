@@ -1,0 +1,2 @@
+/usr/bin/ar cq liblibs.a  CMakeFiles/libs.dir/labeling.cpp.o CMakeFiles/libs.dir/train.cpp.o
+/usr/bin/ranlib liblibs.a
