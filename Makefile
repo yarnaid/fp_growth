@@ -178,6 +178,30 @@ FP-growth/fptree.cpp.s:
 	$(MAKE) -f CMakeFiles/fptree.dir/build.make CMakeFiles/fptree.dir/FP-growth/fptree.cpp.s
 .PHONY : FP-growth/fptree.cpp.s
 
+lib/graph_correlation.o: lib/graph_correlation.cpp.o
+.PHONY : lib/graph_correlation.o
+
+# target to build an object file
+lib/graph_correlation.cpp.o:
+	$(MAKE) -f CMakeFiles/libs.dir/build.make CMakeFiles/libs.dir/lib/graph_correlation.cpp.o
+.PHONY : lib/graph_correlation.cpp.o
+
+lib/graph_correlation.i: lib/graph_correlation.cpp.i
+.PHONY : lib/graph_correlation.i
+
+# target to preprocess a source file
+lib/graph_correlation.cpp.i:
+	$(MAKE) -f CMakeFiles/libs.dir/build.make CMakeFiles/libs.dir/lib/graph_correlation.cpp.i
+.PHONY : lib/graph_correlation.cpp.i
+
+lib/graph_correlation.s: lib/graph_correlation.cpp.s
+.PHONY : lib/graph_correlation.s
+
+# target to generate assembly for a file
+lib/graph_correlation.cpp.s:
+	$(MAKE) -f CMakeFiles/libs.dir/build.make CMakeFiles/libs.dir/lib/graph_correlation.cpp.s
+.PHONY : lib/graph_correlation.cpp.s
+
 lib/labeling.o: lib/labeling.cpp.o
 .PHONY : lib/labeling.o
 
@@ -313,6 +337,9 @@ help:
 	@echo "... FP-growth/fptree.o"
 	@echo "... FP-growth/fptree.i"
 	@echo "... FP-growth/fptree.s"
+	@echo "... lib/graph_correlation.o"
+	@echo "... lib/graph_correlation.i"
+	@echo "... lib/graph_correlation.s"
 	@echo "... lib/labeling.o"
 	@echo "... lib/labeling.i"
 	@echo "... lib/labeling.s"

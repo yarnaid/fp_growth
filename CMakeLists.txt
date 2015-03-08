@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 2.8)
 
 project (main)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
 
 add_library (fptree FP-growth/fptree)
 add_library (utils utils/io utils/utils)
-add_library (libs lib/train lib/labeling)
+add_library (libs lib/train lib/labeling lib/graph_correlation)
 
 
 add_executable (main main.cpp)

@@ -1296,3 +1296,5 @@ lib/train.h
 lib/train.cpp
 utils/utils.h
 utils/utils.cpp
+lib/graph_correlation.h
+lib/graph_correlation.cpp
