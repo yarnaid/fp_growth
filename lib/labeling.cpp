@@ -8,8 +8,6 @@
 #include <algorithm>
 
 
-class MeanFreq;
-
 StatData stat_tree(const node_ptr& root);
 void print_stat_table(std::vector<StatData>& stats);
 std::ostream& operator<<(std::ostream& os, const StatData& stat);
@@ -55,15 +53,79 @@ double mean_freq(const node_ptr& root)
 class iCalculatable
 {
 public:
-    iCalculatable();
-    virtual double operator()();
+    std::string key;
+
+    iCalculatable(const std::string& key) :key(key) {}
+    virtual double operator()(const node_ptr& node) = 0;
+    virtual double get() const = 0;
 };
 
-class WalkWithParam
+using calc_ptr = std::shared_ptr<iCalculatable>;
+
+class MaxFreq : public iCalculatable
+{
+private:
+    double _max;
+public:
+    MaxFreq() :_max(-1), iCalculatable("max_freq") {}
+    inline double operator ()(const node_ptr& node)
+    {
+        return this->_max = std::max(this->_max, double(node->frequency));
+    }
+    double get() const {return this->_max;}
+};
+
+class NodeCount : public iCalculatable
+{
+private:
+    unsigned _count;
+public:
+    NodeCount() :_count(0), iCalculatable("descendant") {}
+    inline double operator ()(const node_ptr& node) {return double(this->_count++);}
+    double get() const {return double(this->_count);}
+};
+
+class MaxDepth : public iCalculatable
+{
+private:
+    unsigned _depth;
+public:
+    MaxDepth() : _depth(0), iCalculatable("max_depth") {}
+    double operator ()(const node_ptr& node)
+    {
+        unsigned depth = 0;
+        node_ptr current = node;
+        while (current->parent)
+        {
+            current = current->parent;
+            ++depth;
+        }
+        return double(this->_depth = std::max(this->_depth, depth));
+    }
+    double get() const {return double(this->_depth);}
+};
+
+class Mean : public iCalculatable
+{
+private:
+    double _sum;
+    int _size;
+public:
+    Mean() :_sum(-1), _size(0), iCalculatable("mean_freq") {}
+    double operator ()(const node_ptr& node)
+    {
+        this->_sum += node->frequency;
+        return (this->_size)++;
+    }
+    double get() const { return this->_size>0? this->_sum / this->_size:-1; }
+
+};
+
+class StatWalk
 {
 private:
     node_ptr _root;
-    virtual double _process_node(const node_ptr& node) = 0;
+    std::vector<calc_ptr> _stat_functions;
 public:
     void init()
     {
@@ -73,56 +135,23 @@ public:
         {
             node_ptr node = q.front();
             q.pop();
-            this->_process_node(node);
+            for (auto stat : this->_stat_functions)
+                (*stat)(node);
             if (!node->children.empty())
                 for (auto child : node->children)
                     q.push(child);
         }
     }
-    WalkWithParam(const node_ptr& root)
-        :_root(root)
-    {}
-    virtual double operator()() const = 0;
-};
-
-class MeanFreq : public WalkWithParam
-{
-private:
-    int _size;
-    int _sum;
-    double _process_node(const node_ptr& node)
+    StatWalk(const node_ptr& root, const std::vector<calc_ptr>& stats)
+        :_root(root), _stat_functions(stats) {this->init();}
+    stat_map get_stat()
     {
-        this->_sum += node->frequency;
-        this->_size += 1;
-        return this->_sum;
+        stat_map res;
+        for (auto stat : this->_stat_functions)
+            res[(*stat).key] = (*stat).get();
+        return res;
     }
-public:
-    MeanFreq(const node_ptr& root)
-        :_sum(-1), _size(0), WalkWithParam(root)
-    {
-        this->init();
-    }
-    inline double operator()() const {return this->_size > 0 ? double(this->_sum) / double(this->_size) : -1;}
 };
-
-class MaxFreq : public WalkWithParam
-{
-private:
-    int _max;
-    double _process_node(const node_ptr &node)
-    {
-        this->_max = std::max(this->_max, int(node->frequency));
-        return this->_max;
-    };
-public:
-    MaxFreq(const node_ptr& root)
-        :_max(0), WalkWithParam(root)
-    {
-        this->init();
-    }
-    inline double operator ()() const {return this->_max;}
-};
-
 
 void print_stat_table(std::vector<StatData>& stats)
 {
@@ -164,11 +193,17 @@ StatData stat_tree(const node_ptr& root)
 
     res.stat["label"] = double(root->label);
 
-    MeanFreq mf(root);
-    res.stat["mean_freq"] = mf();
-
-    MaxFreq max_freq(root);
-    res.stat["max_freq"] = max_freq();
+    std::shared_ptr<Mean> mean(new Mean());
+    std::shared_ptr<MaxFreq> max_freq(new MaxFreq());
+    std::shared_ptr<NodeCount> node_count(new NodeCount());
+    std::shared_ptr<MaxDepth> max_depth(new MaxDepth());
+    std::vector<calc_ptr> stats;
+    stats.push_back(mean);
+    stats.push_back(max_freq);
+    stats.push_back(node_count);
+    stats.push_back(max_depth);
+    StatWalk stat_walk(root, stats);
+    res.stat = stat_walk.get_stat();
 
     return res;
 }
