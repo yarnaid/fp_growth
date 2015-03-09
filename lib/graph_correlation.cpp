@@ -11,6 +11,8 @@ using item_ptr = std::shared_ptr<const Item>;
 using node_ptr = std::shared_ptr<FPNode>;
 std::ostream& operator<<(std::ostream& os, const Edge& edge);
 void to_json(const std::set<Edge>& edges);
+void fill_urls(std::set<url_t>& urls, const std::map<std::string, URLStat>& stats);
+
 
 struct Edge
 {
@@ -22,7 +24,7 @@ struct Edge
     }
     inline bool operator ==(const Edge& other) const
     {
-        return (this->source->token == other.source->token) ||
+        return (this->source->token == other.source->token) &&
                 (this->target->token == other.target->token);
     }
 };
@@ -77,9 +79,6 @@ void update_ips(std::set<url_t>& urls,
 }
 
 
-void fill_urls(std::set<url_t>& urls, const std::map<std::string, URLStat>& stats);
-
-
 void build_graph(const std::map<std::string, URLStat>& stats,
                  const FPTree& fptree)
 {
@@ -106,9 +105,8 @@ void build_graph(const std::map<std::string, URLStat>& stats,
     {
         old_edges_num = edges_num;
         update_urls(urls, ips, edges, nodes_by_ip, nodes_by_url);
-//        update_ips(urls, ips, edges, nodes_by_ip, nodes_by_url);
+        update_ips(urls, ips, edges, nodes_by_ip, nodes_by_url);
         edges_num = edges.size();
-        std::cout << edges_num << std::endl;
     }
 
     to_json(edges);
@@ -139,20 +137,20 @@ std::ostream& operator<<(std::ostream& os, const Edge& edge)
 {
     os << "{";
     if (edge.source)
-        os << "\"source\":" << edge.source->item.fqdn;
+        os << "\"source\":\"" << edge.source->item.fqdn << "\"";
     if (edge.source && edge.target)
         os << ",";
     if (edge.target)
-        os << "\"target\":" << edge.target->item.fqdn;
+        os << "\"target\":\"" << edge.target->item.fqdn << "\"";
     os << "}";
     return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const node_ptr& node)
 {
-    os << "{\"url\":"
+    os << "{\"url\":\""
        << node->item.fqdn
-       << "}";
+       << "\"}";
     return os;
 }
 
@@ -173,15 +171,14 @@ void to_json(const std::set<Edge>& edges)
         {
             done_nodes.insert(e.source);
             if (e.source)
-                nodes_oss << e.source << ",";
+                nodes_oss << "" << e.source << ",";
         }
         if (done_nodes.count(e.target) < 1)
         {
             done_nodes.insert(e.target);
             if (e.target)
-                nodes_oss << e.target << ",";
+                nodes_oss << "" << e.target << ",";
         }
-        std::cout << 1;
     }
     nodes_str = "[" + nodes_oss.str().substr(0, nodes_oss.str().size()-1) + "]";
     edges_str = "[" + edges_oss.str().substr(0, edges_oss.str().size()-1) + "]";
