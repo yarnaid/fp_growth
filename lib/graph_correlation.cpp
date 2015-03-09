@@ -12,6 +12,9 @@ using node_ptr = std::shared_ptr<FPNode>;
 std::ostream& operator<<(std::ostream& os, const Edge& edge);
 void to_json(const std::set<Edge>& edges);
 void fill_urls(std::set<url_t>& urls, const std::map<std::string, URLStat>& stats);
+void fill_nodes(std::map<url_t, std::set<node_ptr> >& nodes_by_url,
+                std::map<ip_t, std::set<node_ptr> >& nodes_by_ip,
+                const FPTree& fptree);
 
 
 struct Edge
@@ -25,14 +28,9 @@ struct Edge
     inline bool operator ==(const Edge& other) const
     {
         return (this->source->token == other.source->token) &&
-                (this->target->token == other.target->token);
+               (this->target->token == other.target->token);
     }
 };
-
-
-void fill_nodes(std::map<url_t, std::set<node_ptr> >& nodes_by_url,
-                std::map<ip_t, std::set<node_ptr> >& nodes_by_ip,
-                const FPTree& fptree);
 
 
 void update_urls(std::set<url_t>& urls,
@@ -119,12 +117,12 @@ void fill_nodes(std::map<url_t, std::set<node_ptr>>& nodes_by_url,
 {
     std::queue<node_ptr> q;
     q.push(fptree.root);
-    while(!q.empty())
+    while (!q.empty())
     {
         node_ptr node = q.front();
         q.pop();
 
-        for(node_ptr child : node->children)
+        for (node_ptr child : node->children)
             q.push(child);
 
         nodes_by_ip[node->item.ip].insert(node);
@@ -180,8 +178,8 @@ void to_json(const std::set<Edge>& edges)
                 nodes_oss << "" << e.target << ",";
         }
     }
-    nodes_str = "[" + nodes_oss.str().substr(0, nodes_oss.str().size()-1) + "]";
-    edges_str = "[" + edges_oss.str().substr(0, edges_oss.str().size()-1) + "]";
+    nodes_str = "[" + nodes_oss.str().substr(0, nodes_oss.str().size() - 1) + "]";
+    edges_str = "[" + edges_oss.str().substr(0, edges_oss.str().size() - 1) + "]";
 
     std::string res = "{\"nodes\":" + nodes_str + ",\"edges\":" + edges_str + "}";
     std::cout << res << std::endl;

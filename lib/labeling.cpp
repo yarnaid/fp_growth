@@ -20,7 +20,7 @@ void parse_tree(const node_ptr& root,
 {
     std::queue<node_ptr> q;
     q.push(root);
-    while(!q.empty())
+    while (!q.empty())
     {
         node_ptr node = q.front();
         q.pop();
@@ -84,7 +84,7 @@ void print_table(const std::map<std::string, URLStat>& urls_stat)
 {
     std::cout << "url,tokens_depth,tokens_number" << std::endl;
 
-    for(const std::pair<std::string, URLStat> stat : urls_stat)
+    for (const std::pair<std::string, URLStat> stat : urls_stat)
     {
         std::cout << stat.first << separator << stat.second << std::endl;
     }
@@ -94,7 +94,7 @@ void print_table(const std::map<std::string, URLStat>& urls_stat)
 
 std::ostream& operator<<(std::ostream& os, const std::set<std::string>& ss)
 {
-    for (auto s: ss)
+    for (auto s : ss)
         os << s << " ";
     return os;
 }

@@ -11,8 +11,8 @@ Transaction item_to_transaction(const Item& item);
 
 
 int read_transactions(const std::string& filename,
-    std::vector<Transaction>& transactions,
-    std::vector<Item>& items)
+                      std::vector<Transaction>& transactions,
+                      std::vector<Item>& items)
 {
     int res = 1;
     std::ifstream input_stream(filename);
@@ -41,7 +41,7 @@ Transaction item_to_transaction(const Item& item)
 
     Transaction res;
 
-    while(std::getline(iss, token, '.'))
+    while (std::getline(iss, token, '.'))
     {
         Item i(item);
         i.token = token;
@@ -67,7 +67,7 @@ Item line_to_item(std::string& line)
         tokens.push_back(token);
         line.erase(0, pos + delimiter.length());
     }
-    tokens.push_back(line.substr(0, line.size()-2)); // remove last quote
+    tokens.push_back(line.substr(0, line.size() - 2)); // remove last quote
 
     struct tm tm;
     strptime(tokens[0].c_str(), "%Y-%m-%dT%H:%M:%S", &tm);
@@ -111,7 +111,7 @@ std::string quote(const std::vector<int>& s)
     if (s.size() < 1)
         return "\"\"";
     std::ostringstream oss;
-    std::copy(s.begin(), s.end()-1, std::ostream_iterator<int>(oss, ","));
+    std::copy(s.begin(), s.end() - 1, std::ostream_iterator<int>(oss, ","));
     oss << s.back();
     return "\"" + oss.str() + "\"";
 }

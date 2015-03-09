@@ -41,7 +41,7 @@ class iCalculatable
 public:
     std::string key;
 
-    iCalculatable(const std::string& key) :key(key) {}
+    iCalculatable(const std::string& key) : key(key) {}
     virtual double operator()(const node_ptr& node) = 0;
     virtual double get() const = 0;
 };
@@ -53,7 +53,7 @@ class MaxFreq : public iCalculatable
 private:
     double _max;
 public:
-    MaxFreq() :_max(-1), iCalculatable("max_freq") {}
+    MaxFreq() : _max(-1), iCalculatable("max_freq") {}
     inline double operator ()(const node_ptr& node)
     {
         return this->_max = std::max(this->_max, double(node->frequency));
@@ -66,7 +66,7 @@ class NodeCount : public iCalculatable
 private:
     unsigned _count;
 public:
-    NodeCount() :_count(0), iCalculatable(token_depth_key) {}
+    NodeCount() : _count(0), iCalculatable(token_depth_key) {}
     inline double operator ()(const node_ptr& node) {return double(this->_count++);}
     double get() const {return double(this->_count);}
 };
@@ -97,13 +97,13 @@ private:
     double _sum;
     int _size;
 public:
-    Mean() :_sum(-1), _size(0), iCalculatable("mean_freq") {}
+    Mean() : _sum(-1), _size(0), iCalculatable("mean_freq") {}
     double operator ()(const node_ptr& node)
     {
         this->_sum += node->frequency;
         return (this->_size)++;
     }
-    double get() const { return this->_size>0? this->_sum / this->_size:-1; }
+    double get() const { return this->_size > 0 ? this->_sum / this->_size : -1; }
 
 };
 
@@ -129,7 +129,7 @@ public:
         }
     }
     StatWalk(const node_ptr& root, const std::vector<calc_ptr>& stats)
-        :_root(root), _stat_functions(stats) {this->init();}
+        : _root(root), _stat_functions(stats) {this->init();}
     stat_map get_stat()
     {
         stat_map res;
@@ -142,7 +142,7 @@ public:
 
 void print_stat_table(const std::vector<StatData>& stats)
 {
-    if( stats.size() < 1)
+    if ( stats.size() < 1)
         return;
 
     std::vector<std::string> keys = get_map_keys <std::string, double> (stats.front().stat);
