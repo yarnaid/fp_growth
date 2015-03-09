@@ -6,6 +6,7 @@
 #include "utils/io.h"
 #include "lib/train.h"
 #include "lib/labeling.h"
+#include "lib/graph_correlation.h"
 
 
 int main(int argc, char const *argv[]) {
@@ -24,7 +25,11 @@ int main(int argc, char const *argv[]) {
     // train(patterns);
 
     // RESULT 2
-    labeling(fptree);
+    std::cout << "RESULT2" << std::endl;
+    std::map<std::string, URLStat> labeled = labeling(fptree);
+
+    // RESULT 3
+    build_graph(labeled);
 
     return 0;
 }

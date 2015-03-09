@@ -1,0 +1,13 @@
+time 547
+id 64787
+source 2
+category 1
+name 1
+md5 1
+ip 6486
+url 63992
+fqdn 19233
+asn 1221
+cc 166
+details 1
+total 64787

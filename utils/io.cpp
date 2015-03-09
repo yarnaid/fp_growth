@@ -104,3 +104,14 @@ std::string quote(const double& s)
     oss << s;
     return "\"" + oss.str() + "\"";
 }
+
+
+std::string quote(const std::vector<int>& s)
+{
+    if (s.size() < 1)
+        return "\"\"";
+    std::ostringstream oss;
+    std::copy(s.begin(), s.end()-1, std::ostream_iterator<int>(oss, ","));
+    oss << s.back();
+    return "\"" + oss.str() + "\"";
+}

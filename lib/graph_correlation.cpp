@@ -1,6 +1,7 @@
 #include "graph_correlation.h"
 
 
-void f() {
-    return;
+void build_graph(const std::map<std::string, URLStat>& stats)
+{
+
 }

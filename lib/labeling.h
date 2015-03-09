@@ -8,16 +8,31 @@
 
 #include "../FP-growth/fptree.hpp"
 
-struct StatData;
-std::vector<StatData> labeling(FPTree& fptree);
+const std::string separator = ",";
 
-using stat_map = std::map<std::string, double>;
+struct URLStat;
+std::map<std::string, URLStat> labeling(const FPTree& fptree);
+
 using node_ptr = std::shared_ptr<FPNode>;
 
-struct StatData
+
+struct URLStat
 {
-    node_ptr node;
-    stat_map stat;
+    std::set<node_ptr> labels;
+    std::set<node_ptr> tokens;
+    std::set<std::string> url_tokens;
+    std::string my_url;
+
+    int get_my_tokens_in_campaign() const {return tokens.size();}
+    std::vector<int> get_my_tokens_depth() const;
+    std::set<std::string> split_my_url(const std::string& url) {
+        this->my_url = url;
+        std::vector<std::string> r = split_url(url);
+        for (const std::string s : r)
+            this->url_tokens.insert(s);
+        return this->url_tokens;
+    }
+    void set_labels();
 };
 
 #endif // LABELING_H

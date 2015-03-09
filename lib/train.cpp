@@ -65,7 +65,7 @@ std::set<Item> append_svm_class(std::set<Pattern>& patterns) {
         std::set<Item> items = it->first;
         for (auto it_items = items.cbegin(); it_items != items.cend(); ++it_items) {
             Item i(*it_items);
-            i.token = i.fqdn;
+//            i.token = i.fqdn;
             int svm_class = 1;
             if (frequency > 3) {
                 svm_class = -1;
