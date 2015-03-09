@@ -22,6 +22,7 @@ int main(int argc, char const *argv[]) {
     // print_pattern(patterns);
 
     // RESULT 1
+//    std::cout << "RESULT1" << std::endl;
     // train(patterns);
 
     // RESULT 2
@@ -29,7 +30,8 @@ int main(int argc, char const *argv[]) {
     std::map<std::string, URLStat> labeled = labeling(fptree);
 
     // RESULT 3
-    build_graph(labeled);
+    std::cout << "RESULT3" << std::endl;
+    build_graph(labeled, fptree);
 
     return 0;
 }
