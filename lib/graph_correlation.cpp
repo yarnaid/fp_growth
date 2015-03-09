@@ -3,10 +3,14 @@
 #include <vector>
 #include <iostream>
 #include <queue>
+#include <ostream>
+#include <sstream>
 
 struct Edge;
 using item_ptr = std::shared_ptr<const Item>;
 using node_ptr = std::shared_ptr<FPNode>;
+std::ostream& operator<<(std::ostream& os, const Edge& edge);
+void to_json(const std::set<Edge>& edges);
 
 struct Edge
 {
@@ -24,48 +28,50 @@ struct Edge
 };
 
 
-void fill_nodes(std::map<url_t, node_ptr>& nodes_by_url,
-           std::map<ip_t, node_ptr>& nodes_by_ip,
-           const FPTree& fptree);
+void fill_nodes(std::map<url_t, std::set<node_ptr> >& nodes_by_url,
+                std::map<ip_t, std::set<node_ptr> >& nodes_by_ip,
+                const FPTree& fptree);
 
 
 void update_urls(std::set<url_t>& urls,
                  std::set<ip_t>& ips,
                  std::set<Edge>& edges,
-                 std::map<ip_t, node_ptr>& nodes_by_ip,
-                 std::map<url_t, node_ptr>& nodes_by_url)
+                 std::map<ip_t, std::set<node_ptr>>& nodes_by_ip,
+                 std::map<url_t, std::set<node_ptr>>& nodes_by_url)
 {
     for (auto url : urls)
     {
-        std::set<ip_t> new_ips;
-        for (auto url : urls)
-            new_ips.insert(nodes_by_url[url]->item.ip);
-        for (auto ip : new_ips)
+        for (auto node_ip : nodes_by_url[url])
         {
+            ip_t ip = node_ip->item.ip;
             ips.insert(ip);
-            Edge e {nodes_by_url[url], nodes_by_ip[ip]};
-            edges.insert(e);
+            for (auto var_url : nodes_by_url[url])
+            {
+                Edge e {var_url, node_ip};
+                edges.insert(e);
+            }
         }
     }
 }
 
 
 void update_ips(std::set<url_t>& urls,
-                 std::set<ip_t>& ips,
-                 std::set<Edge>& edges,
-                 std::map<ip_t, node_ptr>& nodes_by_ip,
-                 std::map<url_t, node_ptr>& nodes_by_url)
+                std::set<ip_t>& ips,
+                std::set<Edge>& edges,
+                std::map<ip_t, std::set<node_ptr>>& nodes_by_ip,
+                std::map<url_t, std::set<node_ptr>>& nodes_by_url)
 {
     for (auto ip : ips)
     {
-        std::set<url_t> new_urls;
-        for (auto ip : ips)
-            new_urls.insert(nodes_by_ip[ip]->item.url);
-        for (auto url : new_urls)
+        for (auto node_url : nodes_by_ip[ip])
         {
+            ip_t url = node_url->item.fqdn;
             urls.insert(url);
-            Edge e {nodes_by_url[url], nodes_by_ip[ip]};
-            edges.insert(e);
+            for (auto var_ip : nodes_by_ip[ip])
+            {
+                Edge e {node_url, var_ip};
+                edges.insert(e);
+            }
         }
     }
 }
@@ -80,10 +86,10 @@ void build_graph(const std::map<std::string, URLStat>& stats,
     std::set<url_t> urls;
     std::set<ip_t> ips;
 
-    std::map<url_t, node_ptr> nodes_by_url;
-    std::map<ip_t, node_ptr> nodes_by_ip;
+    std::map<url_t, std::set<node_ptr>> nodes_by_url;
+    std::map<ip_t, std::set<node_ptr>> nodes_by_ip;
 
-    fill_nodes(nodes_by_url, nodes_by_url, fptree);
+    fill_nodes(nodes_by_url, nodes_by_ip, fptree);
     fill_urls(urls, stats);
 
     std::set<Edge> edges;
@@ -104,12 +110,14 @@ void build_graph(const std::map<std::string, URLStat>& stats,
         edges_num = edges.size();
         std::cout << edges_num << std::endl;
     }
+
+    to_json(edges);
 }
 
 
-void fill_nodes(std::map<url_t, node_ptr>& nodes_by_url,
-           std::map<ip_t, node_ptr>& nodes_by_ip,
-           const FPTree& fptree)
+void fill_nodes(std::map<url_t, std::set<node_ptr>>& nodes_by_url,
+                std::map<ip_t, std::set<node_ptr>>& nodes_by_ip,
+                const FPTree& fptree)
 {
     std::queue<node_ptr> q;
     q.push(fptree.root);
@@ -120,12 +128,68 @@ void fill_nodes(std::map<url_t, node_ptr>& nodes_by_url,
 
         for(node_ptr child : node->children)
             q.push(child);
-        nodes_by_ip[node->item.ip] = node;
-        nodes_by_url[node->item.fqdn] = node;
+
+        nodes_by_ip[node->item.ip].insert(node);
+        nodes_by_url[node->item.fqdn].insert(node);
     }
     return;
 }
 
+std::ostream& operator<<(std::ostream& os, const Edge& edge)
+{
+    os << "{";
+    if (edge.source)
+        os << "\"source\":" << edge.source->item.fqdn;
+    if (edge.source && edge.target)
+        os << ",";
+    if (edge.target)
+        os << "\"target\":" << edge.target->item.fqdn;
+    os << "}";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const node_ptr& node)
+{
+    os << "{\"url\":"
+       << node->item.fqdn
+       << "}";
+    return os;
+}
+
+
+void to_json(const std::set<Edge>& edges)
+{
+    std::set<node_ptr> done_nodes;
+
+    std::string nodes_str;
+    std::string edges_str;
+    std::ostringstream nodes_oss;
+    std::ostringstream edges_oss;
+
+    for (Edge e : edges)
+    {
+        edges_oss << e << ",";
+        if (done_nodes.count(e.source) < 1)
+        {
+            done_nodes.insert(e.source);
+            if (e.source)
+                nodes_oss << e.source << ",";
+        }
+        if (done_nodes.count(e.target) < 1)
+        {
+            done_nodes.insert(e.target);
+            if (e.target)
+                nodes_oss << e.target << ",";
+        }
+        std::cout << 1;
+    }
+    nodes_str = "[" + nodes_oss.str().substr(0, nodes_oss.str().size()-1) + "]";
+    edges_str = "[" + edges_oss.str().substr(0, edges_oss.str().size()-1) + "]";
+
+    std::string res = "{\"nodes\":" + nodes_str + ",\"edges\":" + edges_str + "}";
+    std::cout << res << std::endl;
+
+}
 
 
 void fill_urls(std::set<url_t>& urls, const std::map<std::string, URLStat>& stats)
