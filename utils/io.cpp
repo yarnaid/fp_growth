@@ -87,3 +87,20 @@ Item line_to_item(std::string& line)
     };
     return res;
 }
+
+std::string operator"" _quoted(const char* text, std::size_t len)
+{
+    return "\"" + std::string(text) + "\"";
+}
+
+std::string quote(const std::string& s)
+{
+    return "\"" + s + "\"";
+}
+
+std::string quote(const double& s)
+{
+    std::ostringstream oss;
+    oss << s;
+    return "\"" + oss.str() + "\"";
+}

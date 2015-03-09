@@ -8,7 +8,8 @@
 
 #include "../FP-growth/fptree.hpp"
 
-void labeling(FPTree& fptree);
+struct StatData;
+std::vector<StatData> labeling(FPTree& fptree);
 
 using stat_map = std::map<std::string, double>;
 using node_ptr = std::shared_ptr<FPNode>;

@@ -6,49 +6,36 @@
 #include <string>
 #include <queue>
 #include <algorithm>
+#include "../utils/io.h"
 
 
-StatData stat_tree(const node_ptr& root);
-void print_stat_table(std::vector<StatData>& stats);
+StatData stat_tree(const node_ptr& root, const int& label);
+void print_stat_table(const std::vector<StatData>& stats);
 std::ostream& operator<<(std::ostream& os, const StatData& stat);
 std::ostream& operator<<(std::ostream& os, const stat_map& stat);
 double mean_freq(const node_ptr& root);
 
-std::vector<std::string> get_stat_keys(const std::map<std::string, double>& m)
-{
-    std::vector<std::string> res;
-    res = get_map_keys<std::string, double>(m);
-    return res;
-}
 
-void labeling(FPTree& fptree)
+std::vector<StatData> labeling(FPTree& fptree)
 {
     if (fptree.empty())
     {
-        return;
+        return std::vector<StatData>();
     }
     std::vector<node_ptr> centers = fptree.root->children;
-    std::vector<StatData> stats(centers.size());
+    std::vector<StatData> stats;
 
-    // don't know what it for, but can be usefull
     for (int i = 0; i < centers.size(); ++i)
     {
-        centers[i]->label = i;
+        StatData s = stat_tree(centers[i], i);
+        stats.push_back(s);
     }
 
-    for (auto center : centers)
-    {
-        stats.push_back(stat_tree(center));
-    }
 
     print_stat_table(stats);
-    return;
+    return stats;
 }
 
-double mean_freq(const node_ptr& root)
-{
-    return -1;
-}
 
 class iCalculatable
 {
@@ -153,15 +140,22 @@ public:
     }
 };
 
-void print_stat_table(std::vector<StatData>& stats)
+
+void print_stat_table(const std::vector<StatData>& stats)
 {
     if( stats.size() < 1)
         return;
 
+    std::vector<std::string> keys = get_map_keys <std::string, double> (stats.front().stat);
+    std::cout << "fqdn,";
+    std::copy(keys.begin(), keys.end() - 1, std::ostream_iterator<std::string>(std::cout, ","));
+    std::cout << keys.back() << std::endl;
+
+
     for (auto stat : stats)
     {
         if (node_ptr node = stat.node)
-            std::cout << node->item.fqdn << " ";
+            std::cout << quote(node->item.fqdn);
         std::cout << stat << std::endl;
     }
     return;
@@ -171,7 +165,7 @@ std::ostream& operator<<(std::ostream& os, const stat_map& stat)
 {
     for (auto it : stat)
     {
-        os << "(" << it.first << " " << it.second << ")";
+        os << "," << quote(it.second);
     }
     return os;
 }
@@ -183,15 +177,12 @@ std::ostream& operator<<(std::ostream& os, const StatData& stat)
     return os;
 }
 
-StatData stat_tree(const node_ptr& root)
+StatData stat_tree(const node_ptr& root, const int& label)
 {
     StatData res;
-    std::string key = "frequency";
+    std::string freq = "frequency";
 
     res.node = root;
-    res.stat[key] = root->frequency;
-
-    res.stat["label"] = double(root->label);
 
     std::shared_ptr<Mean> mean(new Mean());
     std::shared_ptr<MaxFreq> max_freq(new MaxFreq());
@@ -202,9 +193,12 @@ StatData stat_tree(const node_ptr& root)
     stats.push_back(max_freq);
     stats.push_back(node_count);
     stats.push_back(max_depth);
+
     StatWalk stat_walk(root, stats);
     res.stat = stat_walk.get_stat();
 
+    res.stat[freq] = root->frequency;
+    res.stat["label"] = label;
+
     return res;
 }
-
