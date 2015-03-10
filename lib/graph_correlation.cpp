@@ -107,7 +107,7 @@ void build_graph(const std::map<std::string, URLStat>& stats,
         edges_num = edges.size();
     }
 
-    to_json(edges);
+    //to_json(edges);
 }
 
 
