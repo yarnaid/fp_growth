@@ -47,8 +47,11 @@ void update_urls(std::set<url_t>& urls,
             ips.insert(ip);
             for (auto var_url : nodes_by_url[url])
             {
-                Edge e {var_url, node_ip};
-                edges.insert(e);
+                if (var_url->item.fqdn != node_ip->item.fqdn)
+                {
+                    Edge e {var_url, node_ip};
+                    edges.insert(e);
+                }
             }
         }
     }
@@ -69,8 +72,11 @@ void update_ips(std::set<url_t>& urls,
             urls.insert(url);
             for (auto var_ip : nodes_by_ip[ip])
             {
-                Edge e {node_url, var_ip};
-                edges.insert(e);
+                if (var_ip->item.fqdn != node_url->item.fqdn)
+                {
+                    Edge e {node_url, var_ip};
+                    edges.insert(e);
+                }
             }
         }
     }
@@ -107,7 +113,7 @@ void build_graph(const std::map<std::string, URLStat>& stats,
         edges_num = edges.size();
     }
 
-    //to_json(edges);
+    to_json(edges);
 }
 
 
@@ -155,7 +161,7 @@ std::ostream& operator<<(std::ostream& os, const node_ptr& node)
 
 void to_json(const std::set<Edge>& edges)
 {
-    std::set<node_ptr> done_nodes;
+    std::set<std::string> done_nodes;
 
     std::string nodes_str;
     std::string edges_str;
@@ -165,15 +171,15 @@ void to_json(const std::set<Edge>& edges)
     for (Edge e : edges)
     {
         edges_oss << e << ",";
-        if (done_nodes.count(e.source) < 1)
+        if (done_nodes.count(e.source->item.fqdn) < 1)
         {
-            done_nodes.insert(e.source);
+            done_nodes.insert(e.source->item.fqdn);
             if (e.source)
                 nodes_oss << "" << e.source << ",";
         }
-        if (done_nodes.count(e.target) < 1)
+        if (done_nodes.count(e.target->item.fqdn) < 1)
         {
-            done_nodes.insert(e.target);
+            done_nodes.insert(e.target->item.fqdn);
             if (e.target)
                 nodes_oss << "" << e.target << ",";
         }

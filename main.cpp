@@ -12,7 +12,7 @@
 int main(int argc, char const *argv[]) {
     std::vector<Transaction> transactions;
     std::vector<Item> items;
-    std::string filename("data/malurl_1d.csv");
+    std::string filename("data/malurl_1d_10000.csv");
 
     read_transactions(filename, transactions, items);
 
@@ -22,15 +22,15 @@ int main(int argc, char const *argv[]) {
     // print_pattern(patterns);
 
     // RESULT 1
-    std::cout << "RESULT1" << std::endl;
-    train(patterns);
+//    std::cout << "RESULT1" << std::endl;
+//    train(patterns);
 
     // RESULT 2
-    std::cout << "RESULT2" << std::endl;
+//    std::cout << "RESULT2" << std::endl;
     std::map<std::string, URLStat> labeled = labeling(fptree);
 
     // RESULT 3
-    std::cout << "RESULT3" << std::endl;
+//    std::cout << "RESULT3" << std::endl;
     build_graph(labeled, fptree);
 
     return 0;
