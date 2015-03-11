@@ -8,8 +8,8 @@ std::set<Item> append_svm_class(std::set<Pattern>& patterns);
 void train(std::set<Pattern>& patterns) {
     std::set<Item> items = append_svm_class(patterns);
 
-    std::vector<sample_type> samples(items.size());
-    std::vector<double> labels(items.size());
+    std::vector<sample_type> samples;
+    std::vector<double> labels;
 
     for (const Item& i : items) {
         samples.push_back(get_sample(i));

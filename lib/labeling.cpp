@@ -74,7 +74,7 @@ std::map<std::string, URLStat> labeling(const FPTree& fptree)
         }
     }
 
-//    print_table(urls_stat);
+    print_table(urls_stat);
 
     return urls_stat;
 }

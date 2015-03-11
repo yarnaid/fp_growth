@@ -131,8 +131,11 @@ void fill_nodes(std::map<url_t, std::set<node_ptr>>& nodes_by_url,
         for (node_ptr child : node->children)
             q.push(child);
 
-        nodes_by_ip[node->item.ip].insert(node);
-        nodes_by_url[node->item.fqdn].insert(node);
+        if (node->item.fqdn != "")
+        {
+            nodes_by_ip[node->item.ip].insert(node);
+            nodes_by_url[node->item.fqdn].insert(node);
+        }
     }
     return;
 }

@@ -19,18 +19,18 @@ int main(int argc, char const *argv[]) {
     const unsigned minimum_support_treshold = 1;
     FPTree fptree{ transactions, minimum_support_treshold };
     std::set<Pattern> patterns = fptree_growth( fptree );
-    // print_pattern(patterns);
+//    print_pattern(patterns);
 
     // RESULT 1
-//    std::cout << "RESULT1" << std::endl;
-//    train(patterns);
+    std::cout << "RESULT1" << std::endl;
+    train(patterns);
 
     // RESULT 2
-//    std::cout << "RESULT2" << std::endl;
+    std::cout << "RESULT2" << std::endl;
     std::map<std::string, URLStat> labeled = labeling(fptree);
 
     // RESULT 3
-//    std::cout << "RESULT3" << std::endl;
+    std::cout << "RESULT3" << std::endl;
     build_graph(labeled, fptree);
 
     return 0;

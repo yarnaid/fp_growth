@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Force-Directed Graph</title>
+<style>
+
+.node {
+  cursor: pointer;
+  stroke: #3182bd;
+  stroke-width: 1.5px;
+}
+
+.link {
+  fill: none;
+  stroke: #9ecae1;
+  stroke-width: 1.5px;
+}
+
+</style>
+<body>
+<script src="d3.js"></script>
+<script>
+
+var width = 960,
+    height = 500;
+
+var force = d3.layout.force()
+    .size([width, height])
+    .linkDistance(10)
+    .charge(-30)
+    .on("tick", tick);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var link = svg.selectAll(".link"),
+    node = svg.selectAll(".node");
+
+var links,
+    nodes;
+
+d3.json("graph.json", function(json) {
+  links = json.edges;
+  nodes = [];
+  update();
+});
+
+function update() {
+
+  var done_nodes = [];
+  links.forEach(function (ln) {
+    var s = {"url": ln.source, "size": 3};
+    var t = {"url": ln.target, "size": 3};
+    if (done_nodes.indexOf(s.url) == -1) {
+      nodes.push(s);
+      ln.source = s;
+      done_nodes.push(s.url);
+    } else {
+      for (var i = 0; i < nodes.length; ++i)
+      {
+        if (nodes[i].url === s.url)
+        {
+          ln.source = nodes[i];
+          break;
+        }
+      }
+    }
+    if (done_nodes.indexOf(t.url) == -1) {
+      nodes.push(t);
+      ln.target = t;
+      done_nodes.push(t.url);
+    } else {
+      for (var i = 0; i < nodes.length; ++i)
+      {
+        if (nodes[i].url === t.url)
+        {
+          ln.target = nodes[i];
+          break;
+        }
+      }
+    }
+  });
+
+  // Restart the force layout.
+  force
+      .nodes(nodes)
+      .links(links)
+      .start();
+
+  // Update the links…
+  link = link.data(links);
+
+  // Exit any old links.
+  // link.exit().remove();
+
+  // Enter any new links.
+  link.enter().insert("line", ".node")
+      .attr("class", "link")
+      .attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+
+  // Update the nodes…
+  node = node.data(nodes).style("fill", color);
+
+  // Exit any old nodes.
+  node.exit().remove();
+
+  // Enter any new nodes.
+  node.enter().append("circle")
+      .attr("class", "node")
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+      .attr("r", function(d) { return d.size; })
+      .style("fill", color)
+      .call(force.drag);
+}
+
+function tick() {
+  node.attr("cx", function(d) { return bounds(d.x, width); })
+      .attr("cy", function(d) { return bounds(d.y, height); });
+
+  link.attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+
+}
+
+function bounds(v, up) {
+  res = Math.max(v, 0);
+  res = Math.min(res, up);
+  return res;
+}
+
+// Color leaf nodes orange, and packages white or blue.
+function color(d) {
+  return "#fd8d3c";
+}
+</script>
