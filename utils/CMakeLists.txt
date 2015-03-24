@@ -3,6 +3,6 @@ project(utils)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
 
-set(SOURCES io.cpp utils.cpp)
+set(SOURCES io utils)
 
 add_library(utils STATIC ${SOURCES})

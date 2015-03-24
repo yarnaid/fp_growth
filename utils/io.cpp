@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <ctime>
+#include <iterator>
 
 
 std::string delimiter("\",\"");
