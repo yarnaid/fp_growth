@@ -9,4 +9,4 @@ add_library (libs lib/train lib/labeling lib/graph_correlation)
 
 
 add_executable (main main.cpp)
-target_link_libraries (main fptree utils libs)
+target_link_libraries (main libs fptree utils)
