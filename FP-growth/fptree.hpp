@@ -12,25 +12,22 @@
 
 #include "../models/item.h"
 #include "../models/fpnode.h"
-
-
-using Transaction = std::vector<Item>;
-using TransformedPrefixPath = std::pair<std::vector<Item>, unsigned>;
-using Pattern = std::pair<std::set<Item>, unsigned>;
-
+#include "../models/transaction.h"
+#include "../models/pattern.h"
 
 struct FPTree {
     std::shared_ptr<FPNode> root;
     std::map<Item, std::shared_ptr<FPNode>> header_table;
-    unsigned minimum_support_treshold;
+    double minimum_support_treshold;
+    double maximum_support_treshold;
 
-    FPTree(const std::vector<Transaction>&, unsigned);
+    FPTree(const std::vector<Transaction>&, double, double );
 
     bool empty() const;
 };
 
 
-std::set<Pattern> fptree_growth(const FPTree&);
+std::set<Pattern> fptree_growth(const FPTree&, const unsigned& class_treshold);
 void print_pattern(const std::set<Pattern>&);
 
 

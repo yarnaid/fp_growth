@@ -4,11 +4,31 @@
 #include <sstream>
 #include <ctime>
 #include <iterator>
+#include <vector>
+#include <string>
+#include "../uri-parser/UriParser.hpp"
 
 
 std::string delimiter("\",\"");
 Item line_to_item(std::string& line);
 Transaction item_to_transaction(const Item& item);
+
+std::vector<std::string> split_string(const std::string& s, const char& delim) {
+    std::vector<std::string> res;
+    if (s.compare("") == 0)
+    {
+        return res;
+    }
+
+    std::string part;
+    std::istringstream iss(s);
+
+    while (std::getline(iss, part, delim))
+    {
+        res.push_back(part);
+    }
+    return res;
+}
 
 
 int read_transactions(const std::string& filename,
@@ -35,17 +55,58 @@ int read_transactions(const std::string& filename,
 
 Transaction item_to_transaction(const Item& item)
 {
-    std::string url = item.fqdn;
-    std::vector<std::string> tokens;
+    url_t url = item.url;
     std::string token;
     std::istringstream iss(url);
 
     Transaction res;
 
-    while (std::getline(iss, token, '.'))
+//    std::string schema(parse_by_regex(std::regex("(^\\w+(?=:\/\/))?(:\/\/)?(www(?=\.))?(\.)?(\w+)"), url)[0]);
+    http::url parsed = http::ParseHttpUrl(url);
+    std::string protocol = parsed.protocol;
+    std::string user = parsed.user;
+    std::string password = parsed.password;
+    std::string host = parsed.host;
+    int port = parsed.port;
+    std::string path = parsed.path;
+    std::string query = parsed.search;
+
+    std::vector<std::string> splitted_host = split_string(host, '.');
+    std::vector<std::string> splitted_path = split_string(path, '/');
+    std::vector<std::string> splitted_query = split_string(query, '&');
+
+    std::string sharped("");
+    if (!splitted_query.empty())
+    {
+        std::vector<std::string> q = split_string(splitted_query.back(), '#');
+        if (q.size() > 1)
+        {
+//            url must not contain more than 1 sharp
+            splitted_query.back() = q[0];
+            sharped = q[1];
+        }
+    }
+
+
+    std::vector<std::string> tokens;
+
+    tokens.reserve(splitted_host.size() + splitted_path.size() + splitted_query.size() + 1);
+    tokens.insert(tokens.end(), splitted_host.begin(), splitted_host.end() - 1); // remove org, com...
+    tokens.insert(tokens.end(), splitted_path.begin(), splitted_path.end());
+    tokens.insert(tokens.end(), splitted_query.begin(), splitted_query.end());
+    if (sharped.compare("") != 0)
+    {
+        tokens.push_back(sharped);
+    }
+
+    for (const std::string t : tokens)
     {
         Item i(item);
-        i.token = token;
+        i.token = t;
+        i.q_number = splitted_query.size();
+        i.domain_length = path.length();
+        i.q_length = query.length() - sharped.length();
+        i.url_length = url.length();
         res.push_back(i);
     }
     if (!res.empty())

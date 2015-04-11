@@ -16,8 +16,9 @@ int main(int argc, char const *argv[]) {
 
     read_transactions(filename, transactions, items);
 
-    const unsigned minimum_support_treshold = 2;
-    FPTree fptree{ transactions, minimum_support_treshold };
+    const double minimum_support_treshold = 0.1;
+    const double maxumum_supprot_treshold = 0.9;
+    FPTree fptree{ transactions, minimum_support_treshold, maxumum_supprot_treshold };
     std::set<Pattern> patterns = fptree_growth( fptree );
     print_pattern(patterns);
     return 0;

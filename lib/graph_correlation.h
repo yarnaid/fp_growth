@@ -7,8 +7,8 @@
 #include <string>
 #include <set>
 
-using url_t = std::string;
-using ip_t = std::string;
+#include "../models/ip.h"
+#include "../models/url.h"
 
 using mapping = std::map<std::string, std::set<std::string>>;
 //mapping url2ip, ip2url;

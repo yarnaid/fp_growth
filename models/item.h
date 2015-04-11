@@ -25,6 +25,11 @@ public:
     int svm_class;
     std::string token;
 
+    int q_number;
+    int domain_length;
+    int q_length;
+    int url_length;
+
 
 public:
     bool operator==(const Item& other) const {
