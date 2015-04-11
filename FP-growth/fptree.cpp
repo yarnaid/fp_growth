@@ -6,12 +6,6 @@
 #include "fptree.hpp"
 
 
-FPNode::FPNode(const Item& item, const std::shared_ptr<FPNode>& parent) :
-    item( item ), frequency( 1 ), node_link( nullptr ), parent( parent ), children(), depth(0), token(item.token) {
-}
-
-
-
 FPTree::FPTree(const std::vector<Transaction>& transactions, unsigned minimum_support_treshold) :
     root( std::make_shared<FPNode>( Item{}, nullptr ) ), header_table(), minimum_support_treshold( minimum_support_treshold ) {
     // scan the transactions counting the frequence of each item
@@ -244,23 +238,6 @@ std::set<Pattern> fptree_growth(const FPTree& fptree) {
 
         return multi_path_patterns;
     }
-}
-
-
-std::ostream& operator<<(std::ostream& os, const Item& item) {
-    os << " " << item.time
-       << " " << item.id
-       << " " << item.source
-       << " " << item.category
-       << " " << item.name
-       << " " << item.md5
-       << " " << item.ip
-       << " " << item.url
-       << " " << item.fqdn
-       << " " << item.asn
-       << " " << item.cc
-       << " " << item.details;
-    return os;
 }
 
 

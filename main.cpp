@@ -16,10 +16,11 @@ int main(int argc, char const *argv[]) {
 
     read_transactions(filename, transactions, items);
 
-    const unsigned minimum_support_treshold = 1;
+    const unsigned minimum_support_treshold = 2;
     FPTree fptree{ transactions, minimum_support_treshold };
     std::set<Pattern> patterns = fptree_growth( fptree );
-//    print_pattern(patterns);
+    print_pattern(patterns);
+    return 0;
 
     // RESULT 1
     std::cout << "RESULT1" << std::endl;
@@ -27,11 +28,11 @@ int main(int argc, char const *argv[]) {
 
     // RESULT 2
     std::cout << "RESULT2" << std::endl;
-    std::map<std::string, URLStat> labeled = labeling(fptree);
+    // std::map<std::string, URLStat> labeled = labeling(fptree);
 
     // RESULT 3
     std::cout << "RESULT3" << std::endl;
-    build_graph(labeled, fptree);
+    // build_graph(labeled, fptree);
 
     return 0;
 }
