@@ -6,12 +6,24 @@
 #include <iterator>
 #include <vector>
 #include <string>
+#include <regex>
+#include <set>
 #include "../uri-parser/UriParser.hpp"
 
 
 std::string delimiter("\",\"");
 Item line_to_item(std::string& line);
 Transaction item_to_transaction(const Item& item);
+
+std::set<std::string> not_tokens {
+    ".exe",
+    ".php",
+    ".org",
+    ".com",
+    ".html",
+    ".xhtml",
+    ".bat"
+};
 
 std::vector<std::string> split_string(const std::string& s, const char& delim) {
     std::vector<std::string> res;
@@ -52,65 +64,116 @@ int read_transactions(const std::string& filename,
     return res;
 }
 
+std::string token_filter(const std::string& s)
+{
+    return s; // FIX: add real filter by extensoin
+}
+
+std::vector<std::string> url_to_tokens(const std::string& url,
+                                       unsigned& q_number,
+                                       unsigned& q_length,
+                                       unsigned& domian_length,
+                                       unsigned& url_length)
+{
+    std::vector<std::string> res;
+    std::string current_url(url);
+    if (url.length() < 1)
+        return res;
+
+    //remove schema
+    std::regex rg("(^\\w+(?=:\/\/))(.*)");
+    std::smatch match;
+    std::regex_search(url, match, rg);
+    current_url = match[2];
+    current_url = current_url.substr(3);
+    url_length = current_url.length();
+
+    //sharped tail to token
+    std::size_t sharp_pos = current_url.find("#");
+    if (sharp_pos != std::string::npos)
+    {
+        res.push_back(current_url.substr(sharp_pos + 1));
+        current_url = current_url.substr(0, sharp_pos);
+    }
+
+    // remove ?params
+    std::size_t q_mark_pos = current_url.find("?");
+    if(q_mark_pos != std::string::npos)
+    {
+        for (auto param : split_string(current_url.substr(q_mark_pos + 1), '&'))
+        {
+            for (auto q : split_string(param, '='))
+            {
+                std::string field = token_filter(q);
+                res.push_back(field);
+                q_number += 1;
+                q_length += field.length();
+            }
+        }
+        current_url = current_url.substr(0, q_mark_pos);
+    }
+
+    //split by delims
+
+    std::vector<std::string> by_slash;
+    std::regex slash_rg = std::regex("([^\/]+(?=\/))(.*)");
+    std::regex_search(current_url, match, slash_rg);
+
+    // split domain and remove org/com...
+    by_slash = split_string(match[1], '.');
+    by_slash.pop_back();
+    for (auto token : by_slash)
+    {
+        res.push_back(token);
+        domian_length += token.length();
+    }
+    current_url = std::string(match[2]).substr(1); // remove leading slash
+
+    std::size_t slash_pos;
+    while(std::regex_search(current_url, match, std::regex("([\\w\.\-]+)")))
+    {
+        //        std::cout << match[1] << ", ";
+        res.push_back(token_filter(match[1]));
+        current_url = match.suffix().str();
+    }
+
+    return res;
+}
+
+std::vector<std::string> url_to_tokens(const std::string& url)
+{
+    unsigned q_number;
+    unsigned q_length;
+    unsigned domian_length;
+    unsigned url_length;
+    return url_to_tokens(url, q_number, q_length, domian_length, url_length);
+}
+
 
 Transaction item_to_transaction(const Item& item)
 {
-    url_t url = item.url;
-    std::string token;
-    std::istringstream iss(url);
-
     Transaction res;
-
-//    std::string schema(parse_by_regex(std::regex("(^\\w+(?=:\/\/))?(:\/\/)?(www(?=\.))?(\.)?(\w+)"), url)[0]);
-    http::url parsed = http::ParseHttpUrl(url);
-    std::string protocol = parsed.protocol;
-    std::string user = parsed.user;
-    std::string password = parsed.password;
-    std::string host = parsed.host;
-    int port = parsed.port;
-    std::string path = parsed.path;
-    std::string query = parsed.search;
-
-    std::vector<std::string> splitted_host = split_string(host, '.');
-    std::vector<std::string> splitted_path = split_string(path, '/');
-    std::vector<std::string> splitted_query = split_string(query, '&');
-
-    std::string sharped("");
-    if (!splitted_query.empty())
-    {
-        std::vector<std::string> q = split_string(splitted_query.back(), '#');
-        if (q.size() > 1)
-        {
-//            url must not contain more than 1 sharp
-            splitted_query.back() = q[0];
-            sharped = q[1];
-        }
-    }
-
+    url_t url = item.url;
 
     std::vector<std::string> tokens;
 
-    tokens.reserve(splitted_host.size() + splitted_path.size() + splitted_query.size() + 1);
-    tokens.insert(tokens.end(), splitted_host.begin(), splitted_host.end() - 1); // remove org, com...
-    tokens.insert(tokens.end(), splitted_path.begin(), splitted_path.end());
-    tokens.insert(tokens.end(), splitted_query.begin(), splitted_query.end());
-    if (sharped.compare("") != 0)
-    {
-        tokens.push_back(sharped);
-    }
+
+    unsigned q_length = 0;
+    unsigned q_number = 0;
+    unsigned domain_legnth = 0;
+    unsigned url_length = 0;
+    tokens = url_to_tokens(url, q_number, q_length, domain_legnth, url_length);
 
     for (const std::string t : tokens)
     {
         Item i(item);
         i.token = t;
-        i.q_number = splitted_query.size();
-        i.domain_length = path.length();
-        i.q_length = query.length() - sharped.length();
-        i.url_length = url.length();
+        i.q_length = q_length;
+        i.q_number = q_number;
+        i.domain_length = domain_legnth;
+        i.url_length = url_length;
         res.push_back(i);
     }
-    if (!res.empty())
-        res.pop_back(); // remove com,org,...
 
     return res;
 }
@@ -135,17 +198,17 @@ Item line_to_item(std::string& line)
     strptime(tokens[0].c_str(), "%Y-%m-%dT%H:%M:%S", &tm);
     Item res {
         mktime(&tm),
-        tokens[1],
-        tokens[2],
-        tokens[3],
-        tokens[4],
-        tokens[5],
-        tokens[6],
-        tokens[7],
-        tokens[8],
-        tokens[9],
-        tokens[10],
-        tokens[11]
+                tokens[1],
+                tokens[2],
+                tokens[3],
+                tokens[4],
+                tokens[5],
+                tokens[6],
+                tokens[7],
+                tokens[8],
+                tokens[9],
+                tokens[10],
+                tokens[11]
     };
     return res;
 }

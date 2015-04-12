@@ -29,6 +29,8 @@ struct FPTree {
 
 std::set<Pattern> fptree_growth(const FPTree&, const unsigned& class_treshold);
 void print_pattern(const std::set<Pattern>&);
+void dump_pattern(const std::set<Pattern>& patterns, const std::string& file_name);
+
 
 
 #endif  // FPTREE_HPP

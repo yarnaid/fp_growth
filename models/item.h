@@ -22,7 +22,7 @@ public:
     std::string cc;
     std::string details;
 
-    int svm_class;
+    mutable int svm_class;
     std::string token;
 
     int q_number;

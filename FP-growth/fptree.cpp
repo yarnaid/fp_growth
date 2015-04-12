@@ -3,6 +3,7 @@
 #include <utility>
 #include <queue>
 #include <cmath>
+#include <fstream>
 
 #include "fptree.hpp"
 
@@ -16,28 +17,19 @@ FPTree::FPTree(const std::vector<Transaction>& transactions, double minimum_supp
     root( std::make_shared<FPNode>( Item{}, nullptr ) ), header_table(), minimum_support_treshold( minimum_support_treshold ), maximum_support_treshold( maximum_support_treshold )
 {
     bool err = false;
-    bool int_treshold = false;
-    if (minimum_support_treshold < 0)
+    bool int_min_treshold = false;
+    bool int_max_treshold = false;
+    if (minimum_support_treshold < 0 or maximum_support_treshold <= 0)
     {
-        std::cout << "Minimum support threshold should be positive" << std::endl;
+        std::cout << "Support thresholds should be positive" << std::endl;
         err = true;
-    } else if (maximum_support_treshold <= minimum_support_treshold)
-    {
-        std:: cout << "Maximum treshold must be greater minimum" << std::endl;
-        err = true;
-    } else if (minimum_support_treshold >= 1)
-    {
-        int_treshold = true;
-        double intpart;
-        if ((std::modf(minimum_support_treshold, &intpart) != 0.0) ||
-                (std::modf(maximum_support_treshold, &intpart) != 0.0)) {
-            std::cout << "Treshold must be integers or <= 1" << std::endl;
-            err = true;
-        }
     }
-    if (err)
+    if (minimum_support_treshold >= 1)
     {
-        return;
+        int_min_treshold = true;
+    }
+    if (maximum_support_treshold > 1) {
+        int_max_treshold = true;
     }
 
     // scan the transactions counting the frequence of each item
@@ -47,15 +39,27 @@ FPTree::FPTree(const std::vector<Transaction>& transactions, double minimum_supp
             ++frequency_by_item[item];
         }
     }
-    if (!int_treshold)
+
+    if (!int_min_treshold || !int_max_treshold)
     {
         unsigned max_frequency = 0;
         for ( const std::pair<Item, unsigned> elem : frequency_by_item)
         {
             max_frequency = std::max(max_frequency, elem.second);
         }
-        maximum_support_treshold = this->maximum_support_treshold * double (max_frequency);
+        if (!int_max_treshold)
+            maximum_support_treshold = this->maximum_support_treshold * double (max_frequency);
+        if (!int_min_treshold)
         minimum_support_treshold = this->minimum_support_treshold * double(max_frequency);
+    }
+
+    if (maximum_support_treshold <= minimum_support_treshold)
+        {
+        return;
+        }
+    if (err)
+    {
+        return;
     }
 
     // keep only items which have a frequency greater or equal than the minimum support treshold
@@ -154,6 +158,7 @@ bool contains_single_path(const FPTree& fptree) {
 
 std::set<Pattern> fptree_growth(const FPTree& fptree, const unsigned& class_treshold) {
     if ( fptree.empty() ) { return std::set<Pattern> {}; }
+    std::set<Pattern> res;
 
     if ( contains_single_path( fptree ) ) {
         // generate all possible combinations of the items in the tree
@@ -187,7 +192,7 @@ std::set<Pattern> fptree_growth(const FPTree& fptree, const unsigned& class_tres
             else { curr_fpnode = nullptr; }
         }
 
-        return single_path_patterns;
+        res = single_path_patterns;
     } else {
         // generate conditional fptrees for each different item in the fptree, then join the results
 
@@ -247,7 +252,7 @@ std::set<Pattern> fptree_growth(const FPTree& fptree, const unsigned& class_tres
             // build the conditional fptree relative to the current item with the transactions just generated
             const FPTree conditional_fptree( conditional_fptree_transactions, fptree.minimum_support_treshold, fptree.maximum_support_treshold );
             // call recursively fptree_growth on the conditional fptree (empty fptree: no patterns)
-            std::set<Pattern> conditional_patterns = fptree_growth( conditional_fptree );
+            std::set<Pattern> conditional_patterns = fptree_growth( conditional_fptree, class_treshold );
 
             // construct patterns relative to the current item using both the current item and the conditional patterns
             std::set<Pattern> curr_item_patterns;
@@ -278,8 +283,20 @@ std::set<Pattern> fptree_growth(const FPTree& fptree, const unsigned& class_tres
             multi_path_patterns.insert( curr_item_patterns.cbegin(), curr_item_patterns.cend() );
         }
 
-        return multi_path_patterns;
+        res = multi_path_patterns;
     }
+    for (const Pattern& p : res)
+    {
+        unsigned frequency = p.second;
+        for (const Item& item : p.first)
+        {
+            frequency > class_treshold?
+                        item.svm_class = GOOD:
+                    item.svm_class = BAD;
+        }
+    }
+
+    return res;
 }
 
 
@@ -291,5 +308,26 @@ void print_pattern(const std::set<Pattern>& patterns) {
             std::cout << item << " ";
         }
         std::cout << std::endl;
+    }
+}
+
+
+void dump_pattern(const std::set<Pattern>& patterns, const std::string& file_name)
+{
+    std::ofstream out_file;
+    out_file.open(file_name);
+
+    if (out_file.is_open())
+    {
+        for ( const Pattern& pattern : patterns ) {
+            for ( const Item& item : pattern.first ) {
+                out_file << item << std::endl;
+            }
+        }
+        out_file.close();
+    } else {
+        std::cout << "Cannot write learning data to file '"
+                  << file_name
+                  << "'!" << std::endl;
     }
 }

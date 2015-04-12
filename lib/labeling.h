@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "../utils/utils.h"
+#include "../utils/io.h"
 
 #include "../FP-growth/fptree.hpp"
 
@@ -27,7 +28,7 @@ struct URLStat
     std::vector<int> get_my_tokens_depth() const;
     std::set<std::string> split_my_url(const std::string& url) {
         this->my_url = url;
-        std::vector<std::string> r = split_url(url);
+        std::vector<std::string> r = url_to_tokens(url);
         for (const std::string s : r)
             this->url_tokens.insert(s);
         return this->url_tokens;

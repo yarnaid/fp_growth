@@ -1,15 +1,35 @@
 #include "train.h"
 #include <vector>
+#include <iostream>
+
+#define DEBUG
 
 sample_type get_sample (const Item& item);
-std::set<Item> append_svm_class(std::set<Pattern>& patterns);
 
+template void train<Kernels::RBF>(std::set<Pattern>& patterns);
+template void train<Kernels::Linear>(std::set<Pattern>& patterns);
+template void train<Kernels::Poly>(std::set<Pattern>& patterns);
+template void train<Kernels::Sigmoid>(std::set<Pattern>& patterns);
 
-void train(std::set<Pattern>& patterns) {
-    std::set<Item> items = append_svm_class(patterns);
+template<typename K>
+void train(std::set<Pattern>& patterns)
+{
+    K k;
+    train(patterns, k);
+    return;
+}
 
+template<typename K>
+void train(std::set<Pattern>& patterns, K& kernel, const unsigned& nu_num, const double& nu_min)
+{
     std::vector<sample_type> samples;
     std::vector<double> labels;
+    std::set<Item> items;
+    typedef K kernel_type;
+
+    for (const Pattern& p : patterns)
+        for (const Item& i : p.first)
+            items.insert(i);
 
     for (const Item& i : items) {
         samples.push_back(get_sample(i));
@@ -24,23 +44,27 @@ void train(std::set<Pattern>& patterns) {
 
     dlib::randomize_samples(samples, labels);
 
-    dlib::svm_c_trainer<kernel_type> trainer;
+    const double max_nu = dlib::maximum_nu(labels);
+    dlib::svm_nu_trainer<kernel_type> trainer;
+    dlib::matrix<double> nus = dlib::linspace(nu_min, max_nu, nu_num);
 
-    for (double gamma = 1.e-2; gamma <= 1e+1; gamma *= 2) {
-        for (double C = 1; C < 1e+7; C *= 5) {
-            // tell the trainer the parameters we want to use
-            trainer.set_kernel(kernel_type(gamma));
-            trainer.set_c(C);
-
-            std::cout << "gamma: " << gamma << "    C: " << C;
-            std::cout << "     cross validation accuracy: " << cross_validate_trainer(trainer, samples, labels, 3);
-        }
+    dlib::matrix<double> res;
+    for(const double& nu : nus)
+    {
+        trainer.set_kernel(kernel);
+        trainer.set_nu(nu);
+        res = dlib::cross_validate_trainer(trainer, samples, labels, 3);
+#ifdef DEBUG
+        std::cout << "nu: " << std::setw(11) << nu;
+        std::cout << " CV accuarncy: " << std::setw(2) << dlib::sum(res) / 2. * 100 << "%" << std::endl;
+#endif
     }
 
     return;
 }
 
-sample_type get_sample (const Item& item) {
+sample_type get_sample (const Item& item)
+{
     sample_type res;
     res(0) = dlib::hash(static_cast<dlib::uint32>(item.time));
     res(1) = dlib::hash(item.id);
@@ -54,25 +78,9 @@ sample_type get_sample (const Item& item) {
     res(9) = dlib::hash(item.asn);
     res(10) = dlib::hash(item.cc);
     res(11) = dlib::hash(item.details);
-    return res;
-}
-
-
-std::set<Item> append_svm_class(std::set<Pattern>& patterns) {
-    std::set<Item> res;
-    for (auto it = patterns.cbegin(); it != patterns.cend(); ++it) {
-        const unsigned frequency = it->second;
-        std::set<Item> items = it->first;
-        for (auto it_items = items.cbegin(); it_items != items.cend(); ++it_items) {
-            Item i(*it_items);
-//            i.token = i.fqdn;
-            int svm_class = 1;
-            if (frequency > 3) {
-                svm_class = -1;
-            }
-            i.svm_class = svm_class;
-            res.insert(i);
-        }
-    }
+    res(12) = dlib::hash(static_cast<dlib::uint32>(item.q_number));
+    res(13) = dlib::hash(static_cast<dlib::uint32>(item.q_length));
+    res(14) = dlib::hash(static_cast<dlib::uint32>(item.url_length));
+    res(15) = dlib::hash(static_cast<dlib::uint32>(item.domain_length));
     return res;
 }

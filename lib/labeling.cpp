@@ -28,7 +28,7 @@ void parse_tree(const node_ptr& root,
             for (auto child : node->children)
                 q.push(child);
 
-        std::string url = node->item.fqdn;
+        std::string url = node->item.url;
         urls_stat[url] = URLStat{};
         urls_stat[url].my_url = url;
         urls_stat[url].split_my_url(url);
@@ -103,6 +103,9 @@ std::ostream& operator<<(std::ostream& os, const URLStat& stat)
 {
     os << quote(stat.get_my_tokens_depth())
        << separator << stat.get_my_tokens_in_campaign();
+    for (auto t : stat.tokens)
+        os << separator << t->campaign;
+    os << separator;
     return os;
 }
 

@@ -7,16 +7,18 @@
 
 
 
-struct FPNode {
+struct FPNode
+{
     const Item item;
     unsigned frequency;
     std::shared_ptr<FPNode> node_link;
     std::shared_ptr<FPNode> parent;
     std::vector<std::shared_ptr<FPNode>> children;
     std::string token;
-    int depth;
+    unsigned depth;
+    unsigned campaign;
 
-    int label;
+    unsigned label;
 
     FPNode(const Item&, const std::shared_ptr<FPNode>&);
 };
