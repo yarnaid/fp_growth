@@ -17,9 +17,9 @@ int main(int argc, char const *argv[]) {
 
     read_transactions(filename, transactions, items);
 
-    const double minimum_support_treshold = 3;
-    const double maxumum_supprot_treshold = 0.5;
-    const unsigned class_treshold = 3;
+    const double minimum_support_treshold = 0.01;
+    const double maxumum_supprot_treshold = 0.9;
+    const unsigned class_treshold = 6;
     FPTree fptree{ transactions, minimum_support_treshold, maxumum_supprot_treshold };
     std::set<Pattern> patterns = fptree_growth( fptree, class_treshold );
 //    print_pattern(patterns);
@@ -27,7 +27,8 @@ int main(int argc, char const *argv[]) {
 
     // RESULT 1
     std::cout << "RESULT1" << std::endl;
-    train<Kernels::Sigmoid>(patterns);  // By default we use default dlib's parameters for kernels
+    build_classifier(patterns, 0.8);
+//    train<Kernels::RBF>(patterns);  // By default we use default dlib's parameters for kernels
                                         // But they can be tuned by giving alternative kernel
                                         // as second argument.
 

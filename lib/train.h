@@ -9,6 +9,10 @@
 
 
 typedef dlib::matrix<double, 16, 1>  sample_type;
+
+void classificate(std::set<Item>& item, const std::string& file_name);
+void build_classifier(std::set<Pattern>& patterns, const double& prop=0.8, const unsigned &nu_num=10, const double &nu_min=1.e-2);
+
 namespace Kernels {
     typedef dlib::linear_kernel<sample_type> Linear;
     typedef dlib::polynomial_kernel<sample_type> Poly;
@@ -20,6 +24,6 @@ template<typename K>
 void train(std::set<Pattern>& patterns);
 
 template<typename K>
-void train(std::set<Pattern>& patterns, K& kernel, const unsigned& nu_num=100, const double& nu_min=1.e-5);
+void train(std::set<Pattern>& patterns, K& kernel, const unsigned& nu_num=100, const double& nu_min=1.e-2);
 
 #endif // TRAIN_H
