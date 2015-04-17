@@ -2,6 +2,7 @@
 
 #include "../utils/utils.h"
 #include <ostream>
+#include <fstream>
 #include <vector>
 #include <string>
 #include <queue>
@@ -9,7 +10,8 @@
 #include "../utils/io.h"
 
 void process_url(const std::pair<std::string, URLStat>& url_stat);
-void print_table(const std::map<std::string, URLStat>& urls_stat);
+void print_table(const std::map<std::string, URLStat>& urls_stat,
+                 const std::string& out_file);
 std::ostream& operator<<(std::ostream& os, const URLStat& stat);
 std::ostream& operator<<(std::ostream& os, const std::set<std::string>& ss);
 
@@ -38,7 +40,8 @@ void parse_tree(const node_ptr& root,
     }
 }
 
-std::map<std::string, URLStat> labeling(const FPTree& fptree)
+std::map<std::string, URLStat> labeling(const FPTree& fptree,
+                                        const std::string& file_name)
 {
     if (fptree.empty())
     {
@@ -74,22 +77,32 @@ std::map<std::string, URLStat> labeling(const FPTree& fptree)
         }
     }
 
-    print_table(urls_stat);
+    print_table(urls_stat, file_name);
 
     return urls_stat;
 }
 
 
-void print_table(const std::map<std::string, URLStat>& urls_stat)
+void print_table(const std::map<std::string, URLStat>& urls_stat,
+                 const std::string& out_file)
 {
-    std::cout << "url,tokens_depth,tokens_number" << std::endl;
-
-    for (const std::pair<std::string, URLStat> stat : urls_stat)
+    std::ofstream s;
+    if (out_file.length() > 0)
     {
-        std::cout << stat.first << separator << stat.second << std::endl;
+        s.open(out_file);
+        if (s.is_open())
+        {
+            s << "url,tokens_depth,tokens_number" << std::endl;
+            for (const std::pair<std::string, URLStat> stat : urls_stat)
+            {
+                s << stat.first << separator << stat.second << std::endl;
+            }
+            s.close();
+        } else {
+            std::cerr << "Warining! Cannot write stat data!" << std::endl;
+            return;
+        }
     }
-
-    return;
 }
 
 std::ostream& operator<<(std::ostream& os, const std::set<std::string>& ss)

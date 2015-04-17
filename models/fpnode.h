@@ -20,6 +20,9 @@ struct FPNode
 
     unsigned label;
 
+    bool operator=(const FPNode& other) const {return item == other.item;}
+    bool operator<(const FPNode& other) const {return item < other.item;}
+
     FPNode(const Item&, const std::shared_ptr<FPNode>&);
 };
 

@@ -36,13 +36,10 @@ void mark_tree(const FPTree &tree, const bool& dump)
                 out_file << "\"" << k << "\"," << node->item << std::endl;
             }
         }
+        if (out_file.is_open())
+            out_file.close();
 
         // go to new campaign
         ++k;
     }
-}
-
-void mark_tree(const FPTree& tree)
-{
-    mark_tree(tree, false);
 }

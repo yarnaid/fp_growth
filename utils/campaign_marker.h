@@ -3,7 +3,6 @@
 
 #include "../FP-growth/fptree.hpp"
 
-void mark_tree(const FPTree& tree, const bool& dump);
-void mark_tree(const FPTree& tree);
+void mark_tree(const FPTree& tree, const bool& dump=true);
 
 #endif // CAMPAIGN_MARKER_H

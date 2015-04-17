@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Force-Directed Graph</title>
+<style>
+
+.node {
+  cursor: pointer;
+  stroke: #3182bd;
+  stroke-width: 1.5px;
+}
+
+.link {
+  fill: none;
+  stroke: #9ecae1;
+  stroke-width: 1.5px;
+}
+
+</style>
+<body>
+<h1>FP-Tree</h1>
+<script src="d3.js"></script>
+<script>
+
+var width = 960,
+    height = 500;
+
+var force = d3.layout.force()
+    .size([width, height])
+    .linkDistance(15)
+    .charge(-50)
+    .on("tick", tick);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var link = svg.selectAll(".link"),
+    node = svg.selectAll(".node");
+
+var links,
+    nodes,
+    freqs,
+    node_elemnt;
+
+d3.json("tree.json", function(json) {
+  links = json.edges;
+  freqs = json.nodes;
+  nodes = [];
+  update();
+});
+
+var radius = d3.scale.log().range([1, 20]);
+
+function update() {
+  var done_nodes = [];
+  links.forEach(function (ln) {
+    var sn = freqs.find(function(e){ return e.url == ln.source;});
+    var tn = freqs.find(function(e){ return e.url == ln.target;});
+    var s = {"url": ln.source, "size": sn.freq};
+    var t = {"url": ln.target, "size": tn.freq};
+    if (done_nodes.indexOf(s.url) == -1) {
+      nodes.push(s);
+      ln.source = s;
+      done_nodes.push(s.url);
+    } else {
+      for (var i = 0; i < nodes.length; ++i)
+      {
+        if (nodes[i].url === s.url)
+        {
+          ln.source = nodes[i];
+          break;
+        }
+      }
+    }
+    if (done_nodes.indexOf(t.url) == -1) {
+      nodes.push(t);
+      ln.target = t;
+      done_nodes.push(t.url);
+    } else {
+      for (var i = 0; i < nodes.length; ++i)
+      {
+        if (nodes[i].url === t.url)
+        {
+          ln.target = nodes[i];
+          break;
+        }
+      }
+    }
+  });
+  radius.domain([1, d3.max(nodes, function(d){ return parseInt(d.size);})]);
+
+  // Restart the force layout.
+  force
+      .nodes(nodes)
+      .links(links)
+      .start();
+
+  // Update the links…
+  link = link.data(links);
+
+  // Exit any old links.
+  // link.exit().remove();
+
+  // Enter any new links.
+  link.enter().insert("line", ".node")
+      .attr("class", "link")
+      .attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+
+  // Update the nodes…
+  node = node.data(nodes).style("fill", color);
+
+  // Exit any old nodes.
+  node.exit().remove();
+
+  // Enter any new nodes.
+  node_elemnt = node.enter().append("g")
+      // .attr("class", "node")
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; });
+  node_elemnt.append("circle")
+      .attr("class", "node")
+      // .attr("cx", function(d) { return d.x; })
+      // .attr("cy", function(d) { return d.y; })
+      .attr("r", function(d) { return radius(d.size); })
+      .style("fill", color)
+      .call(force.drag);
+  node_elemnt.append("text")
+      // .attr("x", function(d) { return d.x; })
+      // .attr("y", function(d) { return d.y; })
+      .style("font-size", 5)
+      .text(function(d) {return d.url;});
+}
+
+function tick() {
+  node_elemnt.attr("cx", function(d) { return bounds(d.x, width); })
+      .attr("cy", function(d) { return bounds(d.y, height); });
+
+  link.attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+  self.node_elemnt.attr('transform', function(d) {
+            return 'translate(' + d.x + ',' + d.y + ')';
+        });
+
+
+  force.stop();
+  force.start();
+}
+
+function bounds(v, up) {
+  res = Math.max(v, 0);
+  res = Math.min(res, up);
+  return res;
+}
+
+// Color leaf nodes orange, and packages white or blue.
+function color(d) {
+  return "#fd8d3c";
+}
+</script>
+</script>
+</body>

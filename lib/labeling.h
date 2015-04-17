@@ -12,7 +12,8 @@
 const std::string separator = ",";
 
 struct URLStat;
-std::map<std::string, URLStat> labeling(const FPTree& fptree);
+std::map<std::string, URLStat> labeling(const FPTree& fptree,
+                                        const std::string& file_name);
 
 using node_ptr = std::shared_ptr<FPNode>;
 
