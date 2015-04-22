@@ -8,7 +8,7 @@
 #include <string>
 #include <regex>
 #include <set>
-#include "../uri-parser/UriParser.hpp"
+//#include "../uri-parser/UriParser.hpp"
 
 
 std::string delimiter("\",\"");
@@ -75,10 +75,11 @@ std::vector<std::string> url_to_tokens(const std::string& url,
                                        unsigned& domian_length,
                                        unsigned& url_length)
 {
+    std::vector<std::string> tokens;
     std::vector<std::string> res;
     std::string current_url(url);
     if (url.length() < 1)
-        return res;
+        return tokens;
 
     //remove schema
     std::regex rg("(^\\w+(?=:\/\/))(.*)");
@@ -92,7 +93,7 @@ std::vector<std::string> url_to_tokens(const std::string& url,
     std::size_t sharp_pos = current_url.find("#");
     if (sharp_pos != std::string::npos)
     {
-        res.push_back(current_url.substr(sharp_pos + 1));
+        tokens.push_back(current_url.substr(sharp_pos + 1));
         current_url = current_url.substr(0, sharp_pos);
     }
 
@@ -105,7 +106,7 @@ std::vector<std::string> url_to_tokens(const std::string& url,
             for (auto q : split_string(param, '='))
             {
                 std::string field = token_filter(q);
-                res.push_back(field);
+                tokens.push_back(field);
                 q_number += 1;
                 q_length += field.length();
             }
@@ -124,7 +125,7 @@ std::vector<std::string> url_to_tokens(const std::string& url,
     by_slash.pop_back();
     for (auto token : by_slash)
     {
-        res.push_back(token);
+        tokens.push_back(token);
         domian_length += token.length();
     }
     current_url = std::string(match[2]).substr(1); // remove leading slash
@@ -133,11 +134,15 @@ std::vector<std::string> url_to_tokens(const std::string& url,
     while(std::regex_search(current_url, match, std::regex("([\\w\.\-]+)")))
     {
         //        std::cout << match[1] << ", ";
-        res.push_back(token_filter(match[1]));
+        tokens.push_back(token_filter(match[1]));
         current_url = match.suffix().str();
     }
+//    for (auto tok : tokens)
+//    {
+//        res.erase(res.)
+//    }
 
-    return res;
+    return tokens;
 }
 
 std::vector<std::string> url_to_tokens(const std::string& url)

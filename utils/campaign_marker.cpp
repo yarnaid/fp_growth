@@ -24,6 +24,8 @@ void mark_tree(const FPTree &tree, const bool& dump)
         // mark all children with k
         std::queue<node_ptr> q;
         q.push(root);
+        if (out_file.is_open())
+            out_file << "K,item" << std::endl;
         while (!q.empty())
         {
             node_ptr node = q.front();
