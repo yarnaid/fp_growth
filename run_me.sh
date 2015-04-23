@@ -1,6 +1,8 @@
 #!/bin/bash
 
 CUR_PATH=$(pwd)
+rm -rf CMakeCache.txt
+rm -rf CMakeFiles
 mkdir build
 cd build
 cmake ../
