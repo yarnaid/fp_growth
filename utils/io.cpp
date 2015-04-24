@@ -82,7 +82,7 @@ std::vector<std::string> url_to_tokens(const std::string& url,
         return tokens;
 
     //remove schema
-    std::regex rg("(^\\w+(?=:\/\/))(.*)");
+    std::regex rg("(^\\w+(?=:\/\/))(.*)", std::regex::ECMAScript);
     std::smatch match;
     std::regex_search(url, match, rg);
     current_url = match[2];
@@ -117,7 +117,7 @@ std::vector<std::string> url_to_tokens(const std::string& url,
     //split by delims
 
     std::vector<std::string> by_slash;
-    std::regex slash_rg = std::regex("([^\/]+(?=\/))(.*)");
+    std::regex slash_rg = std::regex("([^\/]+(?=\/))(.*)", std::regex::ECMAScript);
     std::regex_search(current_url, match, slash_rg);
 
     // split domain and remove org/com...
@@ -131,7 +131,7 @@ std::vector<std::string> url_to_tokens(const std::string& url,
     current_url = std::string(match[2]).substr(1); // remove leading slash
 
     std::size_t slash_pos;
-    while(std::regex_search(current_url, match, std::regex("([\\w\.\-]+)")))
+    while(std::regex_search(current_url, match, std::regex("([\\w\.\-]+)", std::regex::ECMAScript)))
     {
         //        std::cout << match[1] << ", ";
         tokens.push_back(token_filter(match[1]));
