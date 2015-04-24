@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -s
+
 CUR_PATH=$(pwd)
 rm -rf CMakeCache.txt
 rm -rf CMakeFiles
