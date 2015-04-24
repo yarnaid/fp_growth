@@ -1,7 +1,17 @@
 cmake_minimum_required(VERSION 2.8)
 
-project (main)
+project (main CXX)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "gnu")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.9")
+        message(FATAL_ERROR "Insufficient gcc version, update to >=4.9")
+    endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES ".*clang")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "6")
+        message(FATAL_ERROR "Insufficient clang version, update to >=6")
+    endif()
+endif()
 
 add_library (fptree FP-growth/fptree)
 add_library (utils utils/io utils/utils utils/campaign_marker utils/validation_objective)
